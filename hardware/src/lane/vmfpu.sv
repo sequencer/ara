@@ -428,6 +428,9 @@ module vmfpu import ara_pkg::*; import rvv_pkg::*; import fpnew_pkg::*; #(
       PipeConfig: DISTRIBUTED
     };
 
+    // Don't compress classify result
+    localparam int unsigned TrueSIMDClass = 1;
+
     // FPU preprocessed signals
     elen_t operand_a;
     elen_t operand_b;
@@ -488,6 +491,7 @@ module vmfpu import ara_pkg::*; import rvv_pkg::*; import fpnew_pkg::*; #(
           fp_op = MINMAX;
           fp_rm = RTZ;
         end
+        VFCLASS: fp_op = CLASSIFY;
         VFSGNJ : begin
           fp_op = SGNJ;
           fp_rm = RNE;
@@ -619,6 +623,7 @@ module vmfpu import ara_pkg::*; import rvv_pkg::*; import fpnew_pkg::*; #(
       .Implementation(FPUImplementation),
       .TagType       (strb_t           ),
       .NumLanes      (FPULanes         ),
+      .TrueSIMDClass (TrueSIMDClass    ),
       .MaskType      (fpu_mask_t       )
     ) i_fpnew_bulk (
       .clk_i         (clk_i         ),
