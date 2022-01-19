@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - The sequencer can issue instructions to non-full units even if the other units are full
  - Vector indexed unordered/ordered load (`vluxei8`, `vluxei16`, `vluxei32`, `vluxei64`, `vloxei8`, `vloxei16`, `vloxei32`, `vloxei64`)
  - Vector indexed unordered/ordered stores (`vsuxei8`, `vsuxei16`, `vsuxei32`, `vsuxei64`, `vsoxei8`, `vsoxei16`, `vsoxei32`, `vsoxei64`)
+ - Vector floating-point classify instruction (`vfclass`)
+ - Vector floating-point divide instructions (`vfdiv`, `vfrdiv`)
+ - Vector floating-point square-root instruction (`vfsqrt`)
 
 ## Changed
 
