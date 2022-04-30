@@ -1,0 +1,12 @@
+diff --git a/tb/dpi/elfloader.cc b/tb/dpi/elfloader.cc
+index 2aa1dfb..dcc2f5f 100644
+--- a/tb/dpi/elfloader.cc
++++ b/tb/dpi/elfloader.cc
+@@ -60,6 +60,7 @@ extern "C" char read_section (long long address, const svOpenArrayHandle buffer)
+       *((char *) buf + i) = datum;
+       i++;
+     }
++    return 0;
+ }
+ 
+ extern "C" void read_elf(const char* filename) {

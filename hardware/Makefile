@@ -9,6 +9,7 @@ ROOT_DIR := $(patsubst %/,%, $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 ARA_DIR := $(shell git rev-parse --show-toplevel 2>/dev/null || echo $$ARA_DIR)
 INSTALL_DIR := $(abspath $(ROOT_DIR)/../install)
 VERILATOR_INCLUDE := $(INSTALL_DIR)/verilator/share/verilator/include/vltstd
+VCS_INCLUDE := $(VCS_HOME)/include
 
 # Choose Ara's configuration
 ifndef config
@@ -47,6 +48,8 @@ veril_path     ?= $(abspath $(INSTALL_DIR)/verilator/bin)
 veril_top      ?= ara_tb_verilator
 # Top level module to compile
 top_level      ?= ara_tb
+# VCS command
+vcs_cmd        ?= vcs -full64
 # QuestaSim Version
 questa_version ?= 2021.2
 # QuestaSim command
@@ -79,6 +82,8 @@ dpi   := $(patsubst tb/dpi/%.cc,$(buildpath)/$(dpi_library)/%.o,$(wildcard tb/dp
 vlog_args += -suppress vlog-2583 -suppress vlog-13314 -suppress vlog-13233
 vlog_args += -work $(library)
 
+vcs_vlog_args += -nc -sverilog -assert svaext -timescale=1ns/1ns -debug_access+all -kdb -lca
+
 # Defines
 bender_defs += --define NR_LANES=$(nr_lanes) --define VLEN=$(vlen) --define RVV_ARIANE=1
 
@@ -92,14 +97,17 @@ $(buildpath):
 # Bender
 bender:
 	@[ -x ./bender ] && echo "Bender already exists." || \
-	curl --proto '=https' --tlsv1.2 https://fabianschuiki.github.io/bender/init -sSf | sh	-s -- 0.23.1
+	cargo install bender
+	mv ~/.cargo/bin/bender ./
 	@echo "$$(./bender --version) available."
 
 # Patches
 .PHONY: apply-patches
 apply-patches: patches
-	cd deps/tech_cells_generic && git apply ../../patches/0001-tech-cells-generic-sram.patch
 	cd deps/cva6 && git apply ../../patches/0002-cva6-cache-size.patch
+	cd deps/tech_cells_generic && git apply ../../patches/0003-fix-sram-for-vcs.patch
+	cd deps/cva6 && git apply ../../patches/0004-fix-bender-include-dir.patch
+	cd deps/cva6 && git apply ../../patches/0005-fix-elfloader-noreturn-ub.patch
 
 # Library
 .PHONY: lib
@@ -129,6 +137,27 @@ simc: compile
 	cd $(buildpath) && \
 	$(questa_cmd) vsim -c $(questa_args) $(library).$(top_level) -do "run -a"
 	./scripts/return_status.sh $(buildpath)/transcript
+
+# VCS
+#
+# Compilation
+.PHONY: vcs_build
+vcs_build: $(buildpath) bender $(buildpath)/compile_$(config).tcl
+
+$(buildpath)/compile_$(config).tcl: $(config_file) Makefile ../Bender.yml $(shell find src -type f) $(shell find ../config -type f) $(shell find include -type f) $(shell find tb -type f) $(shell find deps -type f)
+	./bender script vcs --vlog-arg="$(vcs_vlog_args)" -t rtl -t ara_test -t cva6_test $(bender_defs) > $(buildpath)/compile_$(config).tcl
+	echo "exit" >> $(buildpath)/compile_$(config).tcl
+	cd $(buildpath) && bash compile_$(config).tcl && vcs -kdb -lca -debug_access+all -full64 work.ara_tb
+
+vcs_sim: vcs_build dpi
+	cd $(buildpath) && ./simv -verdi -do $(ROOT_DIR)/tb/init_testharness.do +permissive -sv_lib work-dpi/ara_dpi +permissive-off +PRELOAD=$(preload) ++$(preload)
+
+# RISC-V Tests simulation
+APPS_DIR := $(abspath $(ROOT_DIR)/../apps)
+TESTS_DIR := $(APPS_DIR)/riscv-tests/isa
+include $(APPS_DIR)/common/riscv_tests.mk
+
+tests := $(ara_tests) $(cva6_tests)
 
 # RISC-V Tests simulation
 APPS_DIR := $(abspath $(ROOT_DIR)/../apps)
@@ -198,7 +227,7 @@ dpi: $(buildpath)/$(dpi_library)/ara_dpi.so
 
 $(buildpath)/$(dpi_library)/%.o: tb/dpi/%.cc
 	mkdir -p $(buildpath)/$(dpi_library)
-	$(CXX) -shared -fPIC -std=c++11 -Bsymbolic -c $< -I$(VERILATOR_INCLUDE) -I$(INSTALL_DIR)/riscv-isa-sim/include -o $@
+	$(CXX) -shared -fPIC -std=c++11 -Bsymbolic -c $< -I$(VCS_INCLUDE) -I$(INSTALL_DIR)/riscv-isa-sim/include -o $@
 
 $(buildpath)/$(dpi_library)/ara_dpi.so: $(dpi)
 	mkdir -p $(buildpath)/$(dpi_library)

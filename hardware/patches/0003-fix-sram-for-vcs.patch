@@ -1,0 +1,70 @@
+From 33be31c2a661b4b3b88e1ee08b32b2a60d21c7a2 Mon Sep 17 00:00:00 2001
+From: Jean-Roch Coulon <jean-roch.coulon@thalesgroup.com>
+Date: Tue, 15 Feb 2022 16:07:26 +0100
+Subject: [PATCH] Fix Unsupported feature by Verilator: Delayed assignment to
+ array inside for loops
+
+  %Error-BLKLOOPINIT: /home/jrcoulon/Projects/spritz-core-v/spritz/core-v-verif/core-v-cores/cva6//core/tech_cells_generic/src/rtl/tc_sram.sv:128:17: Unsupported: Delayed assignment to array inside for loops (non-delayed is ok - see docs)
+    128 |         sram[i] <= init_val[i];
+        |                 ^~
+
+Signed-off-by: Jean-Roch Coulon <jean-roch.coulon@thalesgroup.com>
+---
+ src/rtl/tc_sram.sv | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/src/rtl/tc_sram.sv b/src/rtl/tc_sram.sv
+index 98298d6..45dc261 100644
+--- a/src/rtl/tc_sram.sv
++++ b/src/rtl/tc_sram.sv
+@@ -83,7 +83,7 @@ module tc_sram #(
+   addr_t [NumPorts-1:0] r_addr_q;
+ 
+   // SRAM simulation initialization
+-  data_t [NumWords-1:0] init_val;
++  data_t init_val [NumWords-1:0];
+   initial begin : proc_sram_init
+     for (int unsigned i = 0; i < NumWords; i++) begin
+       for (int unsigned j = 0; j < DataWidth; j++) begin
+@@ -125,14 +125,14 @@ module tc_sram #(
+   always_ff @(posedge clk_i or negedge rst_ni) begin
+     if (!rst_ni) begin
+       for (int unsigned i = 0; i < NumWords; i++) begin
+-        sram[i] <= init_val[i];
++        sram[i] = init_val[i];
+       end
+       for (int i = 0; i < NumPorts; i++) begin
+-        r_addr_q[i] <= {AddrWidth{1'b0}};
++        r_addr_q[i] = {AddrWidth{1'b0}};
+         // initialize the read output register for each port
+         if (Latency != 32'd0) begin
+           for (int unsigned j = 0; j < Latency; j++) begin
+-            rdata_q[i][j] <= init_val[{AddrWidth{1'b0}}];
++            rdata_q[i][j] = init_val[{AddrWidth{1'b0}}];
+           end
+         end
+       end
+@@ -141,7 +141,7 @@ module tc_sram #(
+       for (int unsigned i = 0; i < NumPorts; i++) begin
+         if (Latency != 0) begin
+           for (int unsigned j = 0; j < Latency; j++) begin
+-            rdata_q[i][j] <= rdata_d[i][j];
++            rdata_q[i][j] = rdata_d[i][j];
+           end
+         end
+       end
+@@ -152,12 +152,12 @@ module tc_sram #(
+             // update value when write is set at clock
+             for (int unsigned j = 0; j < DataWidth; j++) begin
+               if (be_i[i][j/ByteWidth]) begin
+-                sram[addr_i[i]][j] <= wdata_i[i][j];
++                sram[addr_i[i]][j] = wdata_i[i][j];
+               end
+             end
+           end else begin
+             // otherwise update read address for subsequent non request cycles
+-            r_addr_q[i] <= addr_i[i];
++            r_addr_q[i] = addr_i[i];
+           end
+         end // if req_i
+       end // for ports

@@ -1,0 +1,13 @@
+diff --git a/Bender.yml b/Bender.yml
+index 159d21e..bd7f3e1 100644
+--- a/Bender.yml
++++ b/Bender.yml
+@@ -12,6 +12,8 @@ export_include_dirs:
+ sources:
+   - defines:
+       WT_DCACHE: 1
++    include_dirs:
++      - src/util
+     files:
+     # Packages
+     - include/riscv_pkg.sv
