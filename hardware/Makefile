@@ -109,6 +109,8 @@ apply-patches: patches
 	cd deps/tech_cells_generic && git apply ../../patches/0003-fix-sram-for-vcs.patch
 	cd deps/cva6 && git apply ../../patches/0004-fix-bender-include-dir.patch
 	cd deps/cva6 && git apply ../../patches/0005-fix-elfloader-noreturn-ub.patch
+	cd deps/common_cells && git apply ../../patches/0006-fix-clog2-synthesis.patch
+	git apply ./patches/0007-fix-NrLanes-value.patch
 
 # Library
 .PHONY: lib
@@ -152,6 +154,11 @@ $(buildpath)/compile_$(config).tcl: $(config_file) Makefile ../Bender.yml $(shel
 
 vcs_sim: vcs_build dpi
 	cd $(buildpath) && ./simv -verdi -do $(ROOT_DIR)/tb/init_testharness.do +permissive -sv_lib work-dpi/ara_dpi +permissive-off +PRELOAD=$(preload) ++$(preload)
+
+.PHONY: fc_synthesis
+fc_synthesis: $(buildpath) bender $(buildpath)/fc_synthesis_$(config).tcl
+$(buildpath)/fc_synthesis_$(config).tcl: $(config_file) Makefile ../Bender.yml $(shell find src -type f) $(shell find ../config -type f) $(shell find include -type f) $(shell find tb -type f) $(shell find deps -type f)
+	./bender script synopsys -t rtl -t ara_test -t cva6_test $(bender_defs) > $(buildpath)/fc_synthesis_$(config).tcl
 
 # RISC-V Tests simulation
 APPS_DIR := $(abspath $(ROOT_DIR)/../apps)

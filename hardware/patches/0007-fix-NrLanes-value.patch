@@ -1,0 +1,14 @@
+diff --git a/hardware/src/ara_soc.sv b/hardware/src/ara_soc.sv
+index d2083cb..9d35415 100644
+--- a/hardware/src/ara_soc.sv
++++ b/hardware/src/ara_soc.sv
+@@ -8,7 +8,8 @@
+ 
+ module ara_soc import axi_pkg::*; import ara_pkg::*; #(
+     // RVV Parameters
+-    parameter  int           unsigned NrLanes      = 0,                          // Number of parallel vector lanes.
++    // TODO: add `ifdef in ara_pkg.sv
++    parameter  int           unsigned NrLanes      = 4,                          // Number of parallel vector lanes.
+     // Support for floating-point data types
+     parameter  fpu_support_e          FPUSupport   = FPUSupportHalfSingleDouble,
+     // AXI Interface
