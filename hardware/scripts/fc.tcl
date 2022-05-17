@@ -1,3 +1,5 @@
+
+
 set np [exec grep processor /proc/cpuinfo | wc -l]
 if {$np > 8} { set np 8 }
 set_host_options -max_cores $np
@@ -7,13 +9,11 @@ set top_name ara_soc
 
 set root_path .
 set scriptPath ${root_path}/scripts
-set outputsPath ${root_path}/outputs
 set rptPath ${root_path}/rpt
 
 # combine with set_svf -off
-set_svf dc_design.svf
+set_svf fc_design.svf
 
-set DESIGN $top_name
 set DESIGN_REF_PATH "/var/workspace/singularity/REFLIBS/SAED14nm_EDK"
 set ADDITIONAL_SEARCH_PATH      " \
       ${DESIGN_REF_PATH}/lib/stdcell_rvt/db_nldm \
@@ -42,7 +42,7 @@ set target_library $std_cell_lib
 
 create_lib -ref_libs $NDM_REFERENCE_LIB_DIRS \
       -technology $TECH_FILE \
-      ./outputs/${DESIGN}
+      ${top_name}
 read_parasitic_tech -tlup $TLUPLUS_MAX_FILE  -layermap  $MAP_FILE
 read_parasitic_tech -tlup $TLUPLUS_MAX_FILE  -layermap  $MAP_FILE
 
