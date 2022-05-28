@@ -156,19 +156,27 @@ vcs_sim: vcs_build dpi
 	cd $(buildpath) && ./simv -verdi -do $(ROOT_DIR)/tb/init_testharness.do +permissive -sv_lib work-dpi/ara_dpi +permissive-off +PRELOAD=$(preload) ++$(preload)
 
 # FC Synthesis
-SYNTHESIS_DIRS = rpt fc_working
-.PHONY: fc_synthesis
-fc_synthesis: $(SYNTHESIS_DIRS) $(buildpath) bender $(buildpath)/fc_synthesis_$(config).tcl start_fc
+SYNTHESIS_DIRS = rpt synthesis_working
 
-$(buildpath)/fc_synthesis_$(config).tcl: $(config_file) Makefile ../Bender.yml $(shell find src -type f) $(shell find ../config -type f) $(shell find include -type f) $(shell find tb -type f) $(shell find deps -type f)
-	./bender script synopsys -t rtl -t ara_test -t cva6_test $(bender_defs) > $(buildpath)/fc_synthesis_$(config).tcl
+.PHONY: fc_synthesis
+fc_synthesis: $(SYNTHESIS_DIRS) $(buildpath) bender $(buildpath)/synthesis_$(config).tcl start_fc
+
+.PHONY: dc_synthesis
+dc_synthesis: $(SYNTHESIS_DIRS) $(buildpath) bender $(buildpath)/synthesis_$(config).tcl start_dc
+
+$(buildpath)/synthesis_$(config).tcl: $(config_file) Makefile ../Bender.yml $(shell find src -type f) $(shell find ../config -type f) $(shell find include -type f) $(shell find tb -type f) $(shell find deps -type f)
+	./bender script synopsys -t rtl  $(bender_defs) > $(buildpath)/synthesis_$(config).tcl
 
 $(SYNTHESIS_DIRS):
 	mkdir -p $@
 
 .PHONY: start_fc
 start_fc:
-	cd fc_working && fc_shell -file ../scripts/fc.tcl
+	cd synthesis_working && fc_shell -file ../scripts/synthesis/fc.tcl
+
+.PHONY: start_dc
+start_dc:
+	cd synthesis_working && dc_shell -f ../scripts/synthesis/dc.tcl
 
 # RISC-V Tests simulation
 APPS_DIR := $(abspath $(ROOT_DIR)/../apps)

@@ -60,6 +60,8 @@ sources:
     - hardware/src/ara_system.sv
     # Level 7
     - hardware/src/ara_soc.sv
+    # mem Wrapper
+    - hardware/src/vector_d_sram_wrapper.sv
 
     - target: ara_test
       files:
