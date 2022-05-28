@@ -1,0 +1,13 @@
+diff --git a/src/lane/vector_regfile.sv b/src/lane/vector_regfile.sv
+index c521b78..bddfb4e 100644
+--- a/src/lane/vector_regfile.sv
++++ b/src/lane/vector_regfile.sv
+@@ -59,7 +59,7 @@ module vector_regfile import ara_pkg::*; #(
+   /////////////
+ 
+   for (genvar bank = 0; bank < NrBanks; bank++) begin: gen_banks
+-    tc_sram #(
++    vector_d_sram_wrapper #(
+       .NumWords (NumWords ),
+       .DataWidth(DataWidth),
+       .NumPorts (1        )

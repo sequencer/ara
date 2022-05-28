@@ -1,7 +1,7 @@
-diff --git a/hardware/src/ara_soc.sv b/hardware/src/ara_soc.sv
+diff --git a/src/ara_soc.sv b/src/ara_soc.sv
 index d2083cb..9d35415 100644
---- a/hardware/src/ara_soc.sv
-+++ b/hardware/src/ara_soc.sv
+--- a/src/ara_soc.sv
++++ b/src/ara_soc.sv
 @@ -8,7 +8,8 @@
  
  module ara_soc import axi_pkg::*; import ara_pkg::*; #(

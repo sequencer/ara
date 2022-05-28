@@ -109,8 +109,14 @@ apply-patches: patches
 	cd deps/tech_cells_generic && git apply ../../patches/0003-fix-sram-for-vcs.patch
 	cd deps/cva6 && git apply ../../patches/0004-fix-bender-include-dir.patch
 	cd deps/cva6 && git apply ../../patches/0005-fix-elfloader-noreturn-ub.patch
+
+
+.PHONY: apply-synthesis-patches
+apply-synthesis-patches:
 	cd deps/common_cells && git apply ../../patches/0006-fix-clog2-synthesis.patch
 	git apply ./patches/0007-fix-NrLanes-value.patch
+	git apply ./patches/0008-fix-pkg-for-loop.patch
+	git apply ./patches/0009-replace-sram-wrapper.patch
 
 # Library
 .PHONY: lib
@@ -159,10 +165,10 @@ vcs_sim: vcs_build dpi
 SYNTHESIS_DIRS = rpt synthesis_working
 
 .PHONY: fc_synthesis
-fc_synthesis: $(SYNTHESIS_DIRS) $(buildpath) bender $(buildpath)/synthesis_$(config).tcl start_fc
+fc_synthesis: $(SYNTHESIS_DIRS) $(buildpath) bender apply-synthesis-patches $(buildpath)/synthesis_$(config).tcl start_fc
 
 .PHONY: dc_synthesis
-dc_synthesis: $(SYNTHESIS_DIRS) $(buildpath) bender $(buildpath)/synthesis_$(config).tcl start_dc
+dc_synthesis: $(SYNTHESIS_DIRS) $(buildpath) bender apply-synthesis-patches $(buildpath)/synthesis_$(config).tcl start_dc
 
 $(buildpath)/synthesis_$(config).tcl: $(config_file) Makefile ../Bender.yml $(shell find src -type f) $(shell find ../config -type f) $(shell find include -type f) $(shell find tb -type f) $(shell find deps -type f)
 	./bender script synopsys -t rtl  $(bender_defs) > $(buildpath)/synthesis_$(config).tcl
